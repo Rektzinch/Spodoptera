@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Bounty Hunter"
+  short_description: "Authorized web security testing workflows"
+  default_prompt: "Use $bug-bounty-hunter to assess an authorized web target and produce evidence-backed findings."

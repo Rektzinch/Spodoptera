@@ -7,6 +7,25 @@ description: Authorized, non-destructive web and API security assessment orchest
 
 Use this skill as an orchestration layer for an authorized security engagement. Hermes/Muse remains the reasoning engine; this skill supplies the state machine, evidence discipline, routing rules, tool selection, and report format.
 
+## Recon & Hunting Philosophy — signal over volume
+
+Spodoptera is designed primarily for official bug-bounty programs operated by organizations with high security maturity. Mature defenses reduce obvious noise; they do not eliminate vulnerabilities. Valuable weaknesses often survive in assumptions, integrations, system changes, legacy paths, edge cases, inconsistent enforcement, and business logic missed by people or automation.
+
+Recon is useful only when it changes the next decision. Optimize for information gained per request, not the number of subdomains, endpoints, tools, scanner alerts, or hours spent. Twenty deliberate requests grounded in a system model can be more valuable than tens of thousands of undirected requests.
+
+Use this reasoning loop:
+
+`OBSERVE → UNDERSTAND_ARCHITECTURE → IDENTIFY_TRUST_BOUNDARIES → FIND_ASSUMPTIONS_OR_INCONSISTENCIES → FORM_HYPOTHESIS → CHOOSE_MINIMUM_EFFECTIVE_TEST → COMPARE_BEHAVIOR → CORRELATE_EVIDENCE → VALIDATE_IMPACT`
+
+Apply these rules throughout the engagement:
+
+- choose a tool because it answers a recorded hypothesis or closes a material coverage gap, never merely because it is installed;
+- prefer one-variable differential comparisons and controls over broad payload volume;
+- rank the next action by expected information gain, relevance to a trust boundary, evidence strength, request cost, and operational risk;
+- stop or pivot when repeated actions produce no new architecture, boundary, inventory, or hypothesis information;
+- on mature targets, prioritize authorization inconsistencies, business-logic/state-machine errors, API/version differences, identity/account lifecycle, integration gaps, concurrency edge cases, parser/normalization differences, legacy surfaces, and enforcement differences between services;
+- treat broad scanners as sensors for correlation, not substitutes for understanding the system.
+
 ## Non-negotiable engagement boundary
 
 Before any active request, create or read `engagement/authorization.md` (or the equivalent scope supplied by the operator). Record:
@@ -46,6 +65,8 @@ Use the pipeline in `references/recon.md` and `workflows/quick-recon.md`:
 
 Do not run every scanner against every host. Select tools based on observed technology and expected signal. Use passive sources before active enumeration when possible.
 
+Before each active recon step, write the question it should answer, the expected artifact, and the condition that will cause a stop or pivot. If the result cannot alter routing, prioritization, or a hypothesis, omit the step.
+
 ### Dynamic module routing
 
 Route observations to modules as soon as they are supported by evidence:
@@ -64,13 +85,24 @@ Route observations to modules as soon as they are supported by evidence:
 
 When a module is routed, load its reference plus the closest workflow. Record why it was selected and what evidence would falsify the hypothesis.
 
+Use reference bundles for cross-cutting surfaces instead of reading a module in isolation:
+
+- REST/API object or privileged function: `api.md` + `authorization.md` + `api-hunt.md`.
+- GraphQL object/field/mutation: `graphql.md` + `authorization.md` + `api-hunt.md`.
+- Stateful or queued operation: `business-logic.md` + `business-logic-hunt.md`. Add `race-conditions.md` only after serial testing exposes an idempotency, retry, atomicity, or duplicate-effect hypothesis and the authorization specifies a reversible fixture plus an exact concurrency envelope.
+- Personalized CDN/API response: `cache.md` + `authorization.md`; add `graphql.md` or `cloud.md` when observed.
+- Proxy/parser disagreement: `request-smuggling.md` + `bypass-techniques.md`; add `cache.md` only when a cache effect is observed.
+- Cloud data plane or artifact: `cloud.md` + `secrets.md`; add `api.md`, `cache.md`, or `authorization.md` according to the boundary.
+
 ## Hypothesis-driven testing
+
+The finding ledger is the canonical record for every hypothesis and candidate. Module-specific inventories and matrices must reference its `id`; they are views of the same work, not competing ledgers. Before any active test, record the remaining request/concurrency budget and the action's expected signal, request cost, operational risk, priority, and stop condition.
 
 For every candidate, create a row in the finding ledger with:
 
-`id | asset | observation | hypothesis | control | test | prerequisite | status | evidence | next action`
+`id | asset | observation | hypothesis | expected_signal | request_cost | risk | priority | control | test | prerequisite | status | evidence | next_action`
 
-Prefer differential tests: same request with one controlled change, two identities, two object IDs, two methods, two content types, or two encodings. Establish a baseline first. Use the least privileged test account and synthetic objects. Avoid brute force; rate-limit observations must remain low-volume and explicitly authorized.
+Prefer differential tests: same request with one controlled change, two identities, two object IDs, two methods, two content types, or two encodings. Establish a baseline first. Use the least privileged test account and synthetic objects. Avoid brute force; rate-limit observations must remain low-volume and explicitly authorized. Re-rank after each decision-changing result; do not consume budget on duplicate branches.
 
 Use tools as evidence producers, not verdicts:
 

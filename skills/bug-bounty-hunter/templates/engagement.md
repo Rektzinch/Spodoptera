@@ -8,6 +8,8 @@
 - Window (UTC):
 - Accounts/test data approved:
 - Rate/concurrency limits:
+- Total request budget / remaining budget:
+- Exact concurrency envelope (if any):
 - Prohibited actions:
 - Evidence/report destination:
 
@@ -15,6 +17,11 @@
 - Current state: SCOPE
 - Last update (UTC):
 - Next action:
+
+## Decision budget
+- Canonical ledger: `findings/ledger.tsv`
+- Current highest-priority hypothesis IDs:
+- Deferred branches and stop/pivot reason:
 
 ## Artifacts
 - Recon:

@@ -45,7 +45,7 @@ if [ ! -e "$engagement_dir/engagement/state.md" ]; then
 fi
 
 if [ ! -e "$engagement_dir/findings/ledger.tsv" ]; then
-  printf 'id\tasset\tobservation\thypothesis\tcontrol\ttest\tprerequisite\tstatus\tevidence\tnext_action\n' > "$engagement_dir/findings/ledger.tsv"
+  printf 'id\tasset\tobservation\thypothesis\texpected_signal\trequest_cost\trisk\tpriority\tcontrol\ttest\tprerequisite\tstatus\tevidence\tnext_action\n' > "$engagement_dir/findings/ledger.tsv"
 fi
 
 echo "Initialized engagement directory: $engagement_dir"

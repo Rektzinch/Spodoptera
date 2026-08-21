@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "tools": [
+    {"name":"subfinder","capability":"asset_discovery","mode":"mostly_passive","cost":"low","risk":"low","use_when":"authorized domain-level asset discovery","avoid_when":"path-only scope"},
+    {"name":"dnsx","capability":"dns_validation","mode":"active","cost":"low","risk":"low","use_when":"candidate hosts need DNS confirmation","avoid_when":"DNS probing excluded"},
+    {"name":"httpx","capability":"http_classification","mode":"active","cost":"low-medium","risk":"low","use_when":"known hosts need HTTP classification","avoid_when":"broad probing exceeds limits"},
+    {"name":"asnmap","capability":"network_context","mode":"passive","cost":"low","risk":"low","use_when":"network ownership helps scope modeling","avoid_when":"ASN expansion is out of scope"},
+    {"name":"naabu","capability":"port_discovery","mode":"active","cost":"medium","risk":"medium","use_when":"service exposure is a recorded hypothesis","avoid_when":"web-only scope or tight rate limits"},
+    {"name":"nmap","capability":"service_confirmation","mode":"active","cost":"medium","risk":"medium","use_when":"narrow host/port validation is justified","avoid_when":"broad scanning is unnecessary"},
+    {"name":"katana","capability":"web_crawling","mode":"active","cost":"medium","risk":"low-medium","use_when":"routes and links can change the target model","avoid_when":"crawl duplicates existing coverage"},
+    {"name":"gau","capability":"historical_urls","mode":"passive","cost":"low","risk":"low","use_when":"legacy/version drift matters","avoid_when":"historical surface is irrelevant"},
+    {"name":"waybackurls","capability":"historical_urls","mode":"passive","cost":"low","risk":"low","use_when":"old paths may reveal drift","avoid_when":"historical data is irrelevant"},
+    {"name":"hakrawler","capability":"web_crawling","mode":"active","cost":"medium","risk":"low-medium","use_when":"lightweight route discovery is useful","avoid_when":"coverage is already sufficient"},
+    {"name":"ffuf","capability":"focused_content_discovery","mode":"active","cost":"medium-high","risk":"medium","use_when":"a narrow path/wordlist hypothesis exists","avoid_when":"blind directory spraying"},
+    {"name":"feroxbuster","capability":"recursive_content_discovery","mode":"active","cost":"high","risk":"medium","use_when":"a bounded content tree needs mapping","avoid_when":"no path hypothesis exists"},
+    {"name":"arjun","capability":"parameter_discovery","mode":"active","cost":"medium","risk":"low-medium","use_when":"endpoint behavior suggests hidden parameters","avoid_when":"no parameter hypothesis exists"},
+    {"name":"nuclei","capability":"template_detection","mode":"active","cost":"variable","risk":"variable","use_when":"technology-specific checks are justified","avoid_when":"used as a blanket verdict engine"},
+    {"name":"dalfox","capability":"xss_assistance","mode":"active","cost":"variable","risk":"low-medium","use_when":"reflected or DOM evidence exists","avoid_when":"no XSS signal exists"},
+    {"name":"gitleaks","capability":"secret_source_triage","mode":"local","cost":"low","risk":"low","use_when":"in-scope source/artifacts are available","avoid_when":"repository is unrelated to scope"},
+    {"name":"trufflehog","capability":"secret_source_triage","mode":"local_or_remote","cost":"variable","risk":"low-medium","use_when":"scoped repositories/artifacts justify it","avoid_when":"unrelated public history"},
+    {"name":"curl","capability":"raw_http_control","mode":"active","cost":"low","risk":"low","use_when":"precise reproducible requests are needed","avoid_when":"never by default; it is the preferred minimal control"},
+    {"name":"httpie","capability":"http_inspection","mode":"active","cost":"low","risk":"low","use_when":"readable manual comparisons help","avoid_when":"exact raw fidelity is required"},
+    {"name":"jq","capability":"json_analysis","mode":"local","cost":"none","risk":"none","use_when":"API evidence needs normalization","avoid_when":"not applicable"},
+    {"name":"ripgrep","capability":"source_text_analysis","mode":"local","cost":"none","risk":"none","use_when":"scoped source or bundles exist","avoid_when":"not applicable"},
+    {"name":"unfurl","capability":"url_normalization","mode":"local","cost":"none","risk":"none","use_when":"endpoint inventories need decomposition","avoid_when":"not applicable"},
+    {"name":"anew","capability":"incremental_dedup","mode":"local","cost":"none","risk":"none","use_when":"incremental inventories need delta tracking","avoid_when":"not applicable"},
+    {"name":"jwt-tool","capability":"jwt_analysis","mode":"local_or_active","cost":"low-variable","risk":"low-medium","use_when":"a justified token-validation hypothesis exists","avoid_when":"blind token mutation"},
+    {"name":"sqlmap","capability":"sqli_validation","mode":"active","cost":"high","risk":"medium-high","use_when":"a parameter-specific SQL differential exists","avoid_when":"generic first-line fuzzing"},
+    {"name":"testssl.sh","capability":"tls_analysis","mode":"active","cost":"medium","risk":"low-medium","use_when":"transport posture is relevant to scope","avoid_when":"higher-value app-layer hypothesis exists"}
+  ]
+}

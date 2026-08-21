@@ -1,124 +1,475 @@
 ---
 name: bug-bounty-hunter
-description: Authorized, non-destructive web and API security assessment orchestration for Hermes. Use for scoped bug-bounty engagements requiring signal-driven recon, attack-surface reasoning, focused module routing, evidence validation, and reporting.
+description: >
+  Advanced bug bounty workflow for authorized, security-mature targets.
+  Uses professional security tools for attack-surface mapping while
+  prioritizing authorization, state-machine, API differential, trust-boundary,
+  and business-logic vulnerabilities.
 ---
 
 # Bug Bounty Hunter
 
-Spodoptera is the control plane. Hermes/Muse is the reasoning engine. Keep this file in context; load detailed references and workflows only when observations require them.
+## Philosophy
 
-## Prime directive
+Do not assume a mature target is free of vulnerabilities.
 
-Optimize for **signal over volume**. Recon is valuable when it changes the next decision. Prefer understanding architecture, trust boundaries, assumptions, and inconsistencies over maximizing hosts, endpoints, requests, scanners, or runtime.
+Mature targets usually already have:
+- WAF
+- SAST/DAST
+- dependency scanning
+- conventional vulnerability scanners
+- security monitoring
+- previous bug bounty coverage
 
-Reasoning loop:
+Therefore:
 
-`OBSERVE → UNDERSTAND → MODEL → BOUNDARY → HYPOTHESIS → SCORE → MINIMUM_EFFECTIVE_TEST → COMPARE → CORRELATE → VALIDATE`
+DO NOT optimize for maximum scanner output.
 
-For mature bug-bounty targets, prioritize authorization drift, business/state-machine errors, API/version differences, identity lifecycle, integration gaps, concurrency edge cases, parser/normalization differences, legacy surfaces, change signals, and cross-service enforcement.
+Optimize for:
 
-## Boundary
+1. discovering assumptions
+2. identifying trust boundaries
+3. comparing equivalent operations
+4. finding inconsistent validation
+5. understanding state transitions
+6. testing authorization boundaries
+7. investigating newly introduced attack surface
 
-Before active testing, read or create `engagement/authorization.md`. Active work requires explicit target/scope, exclusions, applicable rate/concurrency limits, and authorized accounts where relevant.
+Professional tools are instruments, not decision makers.
 
-Stop when scope is missing, ambiguous, expired, or contradicted. Stay low-rate and non-destructive. Exclude DoS/load testing, persistence, destructive changes, spam, real purchases, credential attacks, unauthorized secret use, indiscriminate data collection, and out-of-scope activity.
+Never report scanner output without manual validation.
 
-## Control loop
+---
 
-Use this state machine:
+# HARD SAFETY GATE
 
-`SCOPE → RECON → MAP → MODEL → HYPOTHESES → PRIORITIZE → TARGETED_TESTING → CORRELATE → REPRODUCE → IMPACT → REPORT → SELF_EVALUATE`
+Before active testing:
 
-At each state:
+1. Read the official bug bounty policy.
+2. Create `engagement/authorization.md`.
+3. Build explicit ALLOW-LIST.
+4. Build explicit DENY-LIST.
+5. Determine allowed test accounts.
+6. Determine prohibited techniques.
 
-1. Record what is known and the highest-value unanswered question.
-2. Update the adaptive target model when a new relationship, boundary, object, identity, service, or state is learned.
-3. Score competing next actions by information gain, boundary value, evidence quality, request cost, and operational risk.
-4. Choose the smallest action capable of answering the top question.
-5. Define expected signal, control, request cost, risk, and stop condition.
-6. Execute within scope and preserve evidence.
-7. Update the system model, correlate related candidates, and re-rank hypotheses.
-8. Pivot when an action stops producing decision-changing information.
+Never send active requests outside the allow-list.
 
-Load `references/orchestration.md` when starting an engagement, changing state, selecting tools, building the hypothesis ledger, or deciding whether to stop/pivot.
+Immediately STOP when testing could:
 
-## Progressive routing
+- cause DoS/service degradation
+- affect another user's data
+- create financial loss
+- modify production data belonging to others
+- trigger credential stuffing
+- involve social engineering
+- attack third-party infrastructure
 
-Load only what the current evidence justifies:
+---
 
-| Evidence / surface | Load |
-| --- | --- |
-| Initial asset discovery | `references/recon.md` + `workflows/quick-recon.md` |
-| Existing prior snapshot / recent deployment signal | `references/change-driven-recon.md` |
-| Multiple services/objects/identities need relationship modeling | `references/target-model.md` |
-| Several plausible next actions compete | `references/scoring.md` |
-| Two identities/versions/clients/routes can be compared | `references/differential-analysis.md` |
-| Multiple candidates may share one root cause | `references/correlation.md` |
-| Tool selection or escalation decision | `references/tool-registry.md` + `data/tools.json` |
-| Pause/resume/handoff | `references/checkpoint-resume.md` |
-| Progress stalls or engagement nears completion | `references/self-evaluation.md` |
-| Web routes/content | `references/web-mapping.md` |
-| REST/OpenAPI/versioned API | `references/api.md` + `workflows/api-hunt.md` |
-| Login/session/JWT/OAuth/OIDC | `references/authentication.md` + `workflows/auth-hunt.md` |
-| Object/role/function boundary | `references/authorization.md` |
-| Stateful workflow/invariant | `references/business-logic.md` + `workflows/business-logic-hunt.md` |
-| Bounded concurrency hypothesis | `references/race-conditions.md` |
-| GraphQL | `references/graphql.md` + `references/authorization.md` |
-| WebSocket | `references/websocket.md` |
-| JavaScript/source maps | `references/javascript.md` |
-| Reflected/DOM input | `references/xss.md` |
-| SQL differential | `references/sqli.md` |
-| Generic injection behavior | `references/injection.md` |
-| URL fetch/import/webhook | `references/ssrf.md` |
-| File upload | `references/file-upload.md` |
-| CORS behavior | `references/cors.md` |
-| Cache/CDN behavior | `references/cache.md` |
-| Parser/routing disagreement | `references/bypass-techniques.md` + `references/request-smuggling.md` |
-| Cloud/config/artifact exposure | `references/cloud.md` + `references/secrets.md` |
-| Candidate finding | `references/validation.md` + `workflows/deep-validation.md` |
+# TOOL STRATEGY
 
-Do not preload every reference.
+## Surface Mapping
 
-## Adaptive model
+Preferred:
 
-When the engagement moves beyond simple discovery, maintain relationships among:
+subfinder
+dnsx
+httpx
+naabu
+katana
+gau
+waybackurls
 
-`asset → service → endpoint → identity/role → object → state → trust boundary → evidence → hypothesis`
+Purpose:
 
-Load `references/target-model.md` for the schema and update rules. Prefer testing seams where the same object, role, state, or policy appears through multiple services, versions, clients, or execution paths.
+Map the application.
 
-## Prioritization
+Do NOT blindly scan every discovered host.
 
-When more than one useful action exists, load `references/scoring.md`. Favor novelty, boundary value, business criticality, complexity/change signals, evidence strength, clean differential controls, and low request cost. Re-score after decision-changing evidence.
+Classify:
 
-## Evidence lifecycle
+AUTH
+API
+PAYMENT
+ADMIN
+MERCHANT
+CUSTOMER
+UPLOAD
+CALLBACK
+LEGACY
+STATIC
+INTERNAL-LOOKING
+UNKNOWN
 
-Scanner/tool output is never a finding by itself. Use:
+---
 
-`OBSERVATION → HYPOTHESIS → CANDIDATE → REPRODUCED → CONFIRMED`
+# HTTP / APPLICATION ANALYSIS
 
-Alternative terminal states: `REJECTED` or `NEEDS-EVIDENCE`.
+Preferred:
 
-A confirmed finding requires reproducible evidence, an appropriate control comparison, understood prerequisites, an identified security boundary, and bounded impact. Use `references/validation.md` for the complete rules. Before reporting multiple related candidates, load `references/correlation.md` and decide whether they are one root cause, parent/child manifestations, or separate findings.
+Burp Suite
+Caido
+mitmproxy
+curl
+browser automation
 
-## Engagement bootstrap and continuity
+Capture legitimate application workflows.
 
-Run as applicable:
+Build:
 
-```bash
-scripts/init-engagement.sh <engagement-dir> <target>
-scripts/bootstrap.sh
-scripts/check-tools.sh
-```
+METHOD
+PATH
+AUTH REQUIRED
+ROLE
+INPUT
+OBJECT
+STATE CHANGE
+RESPONSE
+DEPENDENCY
 
-Missing tooling is a routing constraint, never a reason to invent evidence. Preserve raw requests/responses, timestamps, commands, tool versions, scope decisions, negative controls, current model, hypothesis queue, and snapshots in the engagement directory; redact sensitive material before sharing.
+Example:
 
-Before pausing or handing off, load `references/checkpoint-resume.md` and save a checkpoint. On resume, read the checkpoint before running recon again.
+POST /order/create
+POST /order/confirm
+POST /order/pay
+POST /order/cancel
 
-## Output
+Do not immediately fuzz.
 
-Use `templates/finding.md` for findings and `templates/report.md` for final reporting. Report uncertainty, rejected hypotheses, root-cause correlation decisions, and meaningful coverage gaps explicitly.
+Understand the state machine first.
 
-## Completion
+---
 
-Before marking an engagement complete, load `references/self-evaluation.md`. Finish when the authorized surfaces selected for the engagement have been modeled sufficiently to answer the active hypotheses, candidates have been confirmed/rejected/marked needs-evidence, duplicate manifestations are correlated, evidence is preserved, findings are reproducible, limitations are explicit, and another cycle is unlikely to produce enough new information to justify its cost and risk.
+# AUTHORIZATION MATRIX
+
+For every important operation build:
+
+| Actor | Object | Read | Modify | Delete | Execute |
+|------|------|------|------|------|------|
+| User A | A | ? | ? | ? | ? |
+| User A | B | ? | ? | ? | ? |
+| User B | B | ? | ? | ? | ? |
+
+Test using researcher-controlled accounts only.
+
+Compare:
+
+anonymous vs authenticated
+
+user A vs user B
+
+customer vs merchant
+
+low privilege vs higher privilege
+
+web vs mobile API
+
+old API vs new API
+
+Never access real third-party user data.
+
+---
+
+# DIFFERENTIAL TESTING
+
+High priority.
+
+Search for operations implemented through multiple paths.
+
+Examples:
+
+WEB
+    ↓
+POST /api/v2/profile
+
+MOBILE
+    ↓
+PUT /api/profile
+
+LEGACY
+    ↓
+POST /v1/user/update
+
+Compare:
+
+authentication
+authorization
+validation
+normalization
+rate controls
+state requirements
+response behavior
+
+Ask:
+
+"Why do these equivalent operations behave differently?"
+
+---
+
+# STATE MACHINE ANALYSIS
+
+Identify workflows containing multiple states.
+
+Example:
+
+CREATED
+   ↓
+VERIFIED
+   ↓
+APPROVED
+   ↓
+COMPLETED
+
+Test safe variations:
+
+skip
+
+repeat
+
+reorder
+
+replay
+
+duplicate
+
+stale state
+
+parallel state
+
+Do NOT perform actions capable of causing financial loss or service
+degradation.
+
+---
+
+# BUSINESS LOGIC
+
+Do not fuzz randomly.
+
+First define invariant.
+
+Example:
+
+"A coupon should only be consumed once."
+
+"Object owner must be the only actor allowed to modify the object."
+
+"Verification must occur before operation X."
+
+Then search for paths violating the invariant.
+
+Format:
+
+INVARIANT
+EXPECTED
+ALTERNATIVE PATH
+OBSERVED
+IMPACT
+
+---
+
+# TRUST BOUNDARIES
+
+Map:
+
+browser → API
+
+mobile → API
+
+API → internal service
+
+merchant → platform
+
+callback → backend
+
+upload → processor
+
+authentication → application
+
+legacy → current API
+
+Ask:
+
+Which component trusts another component?
+
+What assumption makes that trust safe?
+
+Can that assumption be violated safely?
+
+---
+
+# JAVASCRIPT / CLIENT ANALYSIS
+
+Preferred:
+
+ripgrep
+Semgrep
+AST tools
+source-map tools when permitted
+
+Search for:
+
+API versions
+hidden routes
+feature flags
+deprecated functionality
+internal object names
+authorization assumptions
+GraphQL operations
+REST endpoints
+WebSocket endpoints
+
+Client-side discoveries are leads, not vulnerabilities.
+
+---
+
+# TARGETED SCANNING
+
+Only after attack surface classification.
+
+Use:
+
+nuclei
+dalfox
+ffuf
+
+against specific hypotheses.
+
+BAD:
+
+nuclei -u everything
+
+GOOD:
+
+Hypothesis:
+legacy merchant endpoint may have inconsistent authorization.
+
+Then select tooling required to investigate that hypothesis.
+
+---
+
+# HYPOTHESIS LOOP
+
+Every investigation follows:
+
+OBSERVATION
+    ↓
+HYPOTHESIS
+    ↓
+MINIMAL TEST
+    ↓
+COMPARE
+    ↓
+VALIDATE
+    ↓
+IMPACT
+
+Example:
+
+Observation:
+Web and mobile use different API versions.
+
+Hypothesis:
+Older API may enforce authorization differently.
+
+Minimal test:
+Compare equivalent researcher-owned operations.
+
+Result:
+Same → discard hypothesis.
+Different → investigate.
+
+---
+
+# NOVELTY PRIORITY
+
+Prioritize:
+
+new endpoints
+new products
+new integrations
+new API versions
+recent migrations
+legacy compatibility layers
+mobile/web discrepancies
+new authentication mechanisms
+new merchant/customer workflows
+
+Reason:
+
+Security maturity is not uniform across time.
+
+New boundaries frequently contain new assumptions.
+
+---
+
+# FINDING CONFIDENCE
+
+Every candidate must be classified:
+
+CONFIRMED
+LIKELY
+NEEDS_VALIDATION
+FALSE_POSITIVE
+NOT_APPLICABLE
+
+Only CONFIRMED findings should reach final report.
+
+---
+
+# STOP RULE
+
+Stop investigating when:
+
+impact requires accessing another person's data
+
+impact requires financial abuse
+
+validation could disrupt production
+
+scope becomes ambiguous
+
+third-party infrastructure becomes involved
+
+Further exploitation is unnecessary once impact is demonstrated.
+
+---
+
+# REPORT
+
+For confirmed findings:
+
+# Title
+
+Severity:
+Confidence:
+Affected asset:
+Endpoint:
+Component:
+
+## Summary
+
+## Security invariant
+
+## Preconditions
+
+## Steps to reproduce
+
+## Expected behavior
+
+## Actual behavior
+
+## Evidence
+
+## Security impact
+
+## Root-cause hypothesis
+
+## Remediation
+
+## Scope verification
+
+Do not exaggerate severity.
+
+Do not invent evidence.
+
+Do not automatically submit reports.

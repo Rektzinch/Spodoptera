@@ -1,143 +1,100 @@
 ---
 name: bug-bounty-hunter
-description: Authorized, non-destructive web and API security assessment orchestration for Hermes. Use when an engagement has an explicit target and scope and the agent must perform recon, map attack surface, route to relevant testing modules, correlate scanner output, validate findings, and produce an evidence-backed report.
+description: Authorized, non-destructive web and API security assessment orchestration for Hermes. Use for scoped bug-bounty engagements requiring signal-driven recon, attack-surface reasoning, focused module routing, evidence validation, and reporting.
 ---
 
 # Bug Bounty Hunter
 
-Use this skill as an orchestration layer for an authorized security engagement. Hermes/Muse remains the reasoning engine; this skill supplies the state machine, evidence discipline, routing rules, tool selection, and report format.
+Spodoptera is the control plane. Hermes/Muse is the reasoning engine. Keep this file in context; load detailed references and workflows only when observations require them.
 
-## Recon & Hunting Philosophy — signal over volume
+## Prime directive
 
-Spodoptera is designed primarily for official bug-bounty programs operated by organizations with high security maturity. Mature defenses reduce obvious noise; they do not eliminate vulnerabilities. Valuable weaknesses often survive in assumptions, integrations, system changes, legacy paths, edge cases, inconsistent enforcement, and business logic missed by people or automation.
+Optimize for **signal over volume**. Recon is valuable when it changes the next decision. Prefer understanding architecture, trust boundaries, assumptions, and inconsistencies over maximizing hosts, endpoints, requests, scanners, or runtime.
 
-Recon is useful only when it changes the next decision. Optimize for information gained per request, not the number of subdomains, endpoints, tools, scanner alerts, or hours spent. Twenty deliberate requests grounded in a system model can be more valuable than tens of thousands of undirected requests.
+Reasoning loop:
 
-Use this reasoning loop:
+`OBSERVE → UNDERSTAND → BOUNDARY → HYPOTHESIS → MINIMUM_EFFECTIVE_TEST → COMPARE → CORRELATE → VALIDATE`
 
-`OBSERVE → UNDERSTAND_ARCHITECTURE → IDENTIFY_TRUST_BOUNDARIES → FIND_ASSUMPTIONS_OR_INCONSISTENCIES → FORM_HYPOTHESIS → CHOOSE_MINIMUM_EFFECTIVE_TEST → COMPARE_BEHAVIOR → CORRELATE_EVIDENCE → VALIDATE_IMPACT`
+For mature bug-bounty targets, prioritize authorization drift, business/state-machine errors, API/version differences, identity lifecycle, integration gaps, concurrency edge cases, parser/normalization differences, legacy surfaces, and cross-service enforcement.
 
-Apply these rules throughout the engagement:
+## Boundary
 
-- choose a tool because it answers a recorded hypothesis or closes a material coverage gap, never merely because it is installed;
-- prefer one-variable differential comparisons and controls over broad payload volume;
-- rank the next action by expected information gain, relevance to a trust boundary, evidence strength, request cost, and operational risk;
-- stop or pivot when repeated actions produce no new architecture, boundary, inventory, or hypothesis information;
-- on mature targets, prioritize authorization inconsistencies, business-logic/state-machine errors, API/version differences, identity/account lifecycle, integration gaps, concurrency edge cases, parser/normalization differences, legacy surfaces, and enforcement differences between services;
-- treat broad scanners as sensors for correlation, not substitutes for understanding the system.
+Before active testing, read or create `engagement/authorization.md`. Active work requires explicit target/scope, exclusions, applicable rate/concurrency limits, and authorized accounts where relevant.
 
-## Non-negotiable engagement boundary
+Stop when scope is missing, ambiguous, expired, or contradicted. Stay low-rate and non-destructive. Exclude DoS/load testing, persistence, destructive changes, spam, real purchases, credential attacks, unauthorized secret use, indiscriminate data collection, and out-of-scope activity.
 
-Before any active request, create or read `engagement/authorization.md` (or the equivalent scope supplied by the operator). Record:
+## Control loop
 
-- in-scope domains, hosts, paths, APIs, accounts, and test window;
-- explicitly excluded assets and actions;
-- rate/concurrency limits and contact/escalation details;
-- whether authenticated testing is authorized and which test accounts may be used.
+Use this state machine:
 
-If scope is missing, ambiguous, expired, or contradicted by a later instruction, stop active testing and ask for clarification. Never infer ownership from credentials, a hostname, a bug-bounty brand, or a user's claim alone. Keep all requests low-rate and non-destructive. Do not perform DoS/load testing, persistence, destructive changes, spam, real purchases, credential attacks, secret use, data dumping, or testing outside scope.
+`SCOPE → RECON → MAP → MODEL → HYPOTHESES → TARGETED_TESTING → CORRELATE → REPRODUCE → IMPACT → REPORT`
 
-## Engagement state machine
+At each state:
 
-Progress through these states and record a short status update in the engagement directory:
+1. Record what is known and the highest-value unanswered question.
+2. Choose the smallest action capable of answering it.
+3. Define expected signal, control, request cost, risk, and stop condition.
+4. Execute within scope and preserve evidence.
+5. Update the system model and re-rank hypotheses.
+6. Pivot when an action stops producing decision-changing information.
 
-`SCOPE → RECON → ATTACK_SURFACE_MAP → TECHNOLOGY_ANALYSIS → ENDPOINT_INVENTORY → AUTH_MODEL → AUTHZ_MODEL → HYPOTHESES → TARGETED_TESTING → CORRELATION → ALTERNATIVE_PATHS → REPRODUCTION → IMPACT → REPORT`
+Load `references/orchestration.md` when starting an engagement, changing state, selecting tools, building the hypothesis ledger, or deciding whether to stop/pivot.
 
-Do not skip directly from a scanner alert to a report. A scanner result is an `OBSERVATION`; inspect raw HTTP, create a hypothesis, reproduce independently, compare with a control request, determine prerequisites, identify the violated security boundary, and assess impact. Use `references/validation.md` for status transitions and evidence requirements.
+## Progressive routing
 
-## Start and route an engagement
+Load only what the current evidence justifies:
 
-1. Run `scripts/init-engagement.sh <engagement-dir> <target>` and complete the generated authorization file.
-2. Run `scripts/bootstrap.sh` and `scripts/check-tools.sh`. Treat missing tools as a routing constraint, not a reason to invent results.
-3. Execute the smallest workflow that answers the current question. Read only the relevant workflow and references; do not preload every module.
-4. Preserve raw requests/responses, timestamps, command lines, tool versions, scope decisions, and negative controls under the engagement directory. Redact tokens, cookies, personal data, and secrets before sharing evidence.
+| Evidence / surface | Load |
+| --- | --- |
+| Initial asset discovery | `references/recon.md` + `workflows/quick-recon.md` |
+| Web routes/content | `references/web-mapping.md` |
+| REST/OpenAPI/versioned API | `references/api.md` + `workflows/api-hunt.md` |
+| Login/session/JWT/OAuth/OIDC | `references/authentication.md` + `workflows/auth-hunt.md` |
+| Object/role/function boundary | `references/authorization.md` |
+| Stateful workflow/invariant | `references/business-logic.md` + `workflows/business-logic-hunt.md` |
+| Bounded concurrency hypothesis | `references/race-conditions.md` |
+| GraphQL | `references/graphql.md` + `references/authorization.md` |
+| WebSocket | `references/websocket.md` |
+| JavaScript/source maps | `references/javascript.md` |
+| Reflected/DOM input | `references/xss.md` |
+| SQL differential | `references/sqli.md` |
+| Generic injection behavior | `references/injection.md` |
+| URL fetch/import/webhook | `references/ssrf.md` |
+| File upload | `references/file-upload.md` |
+| CORS behavior | `references/cors.md` |
+| Cache/CDN behavior | `references/cache.md` |
+| Parser/routing disagreement | `references/bypass-techniques.md` + `references/request-smuggling.md` |
+| Cloud/config/artifact exposure | `references/cloud.md` + `references/secrets.md` |
+| Candidate finding | `references/validation.md` + `workflows/deep-validation.md` |
 
-### Recon routing
+Do not preload every reference.
 
-Use the pipeline in `references/recon.md` and `workflows/quick-recon.md`:
+## Evidence lifecycle
 
-`subfinder → dnsx → httpx → interesting hosts`
-
-- web surface → `katana`, `gau`, `waybackurls`, `hakrawler`, then focused `ffuf`/`feroxbuster`;
-- API indicators (`/api/`, OpenAPI, JSON, versioned routes) → `workflows/api-hunt.md` and `references/api.md`;
-- unusual exposed service → narrow `naabu`/`nmap` inspection within rate limits;
-- JavaScript-heavy application → `references/javascript.md` and source-map/route analysis.
-
-Do not run every scanner against every host. Select tools based on observed technology and expected signal. Use passive sources before active enumeration when possible.
-
-Before each active recon step, write the question it should answer, the expected artifact, and the condition that will cause a stop or pivot. If the result cannot alter routing, prioritization, or a hypothesis, omit the step.
-
-### Dynamic module routing
-
-Route observations to modules as soon as they are supported by evidence:
-
-- `/graphql`, GraphQL content type, or GraphQL operation → `references/graphql.md`;
-- `Authorization: Bearer eyJ...`, refresh tokens, OAuth/OIDC → `references/authentication.md`;
-- `POST`/`PUT` with `multipart/form-data` or upload UI → `references/file-upload.md`;
-- WebSocket handshake or `wss://` URL → `references/websocket.md`;
-- reflected input or DOM sink → `references/xss.md`;
-- SQL error/timing/type differential → `references/sqli.md` and only then consider narrowly scoped `sqlmap`;
-- URL-fetch/import/webhook parameter → `references/ssrf.md`;
-- `Origin`/CORS behavior → `references/cors.md`;
-- cache headers, CDN keys, or personalized responses → `references/cache.md`;
-- ambiguous parser/normalization/routing behavior → `references/bypass-techniques.md` and `references/request-smuggling.md`;
-- cloud metadata, public bucket, exposed CI/config → `references/cloud.md` and `references/secrets.md`.
-
-When a module is routed, load its reference plus the closest workflow. Record why it was selected and what evidence would falsify the hypothesis.
-
-Use reference bundles for cross-cutting surfaces instead of reading a module in isolation:
-
-- REST/API object or privileged function: `api.md` + `authorization.md` + `api-hunt.md`.
-- GraphQL object/field/mutation: `graphql.md` + `authorization.md` + `api-hunt.md`.
-- Stateful or queued operation: `business-logic.md` + `business-logic-hunt.md`. Add `race-conditions.md` only after serial testing exposes an idempotency, retry, atomicity, or duplicate-effect hypothesis and the authorization specifies a reversible fixture plus an exact concurrency envelope.
-- Personalized CDN/API response: `cache.md` + `authorization.md`; add `graphql.md` or `cloud.md` when observed.
-- Proxy/parser disagreement: `request-smuggling.md` + `bypass-techniques.md`; add `cache.md` only when a cache effect is observed.
-- Cloud data plane or artifact: `cloud.md` + `secrets.md`; add `api.md`, `cache.md`, or `authorization.md` according to the boundary.
-
-## Hypothesis-driven testing
-
-The finding ledger is the canonical record for every hypothesis and candidate. Module-specific inventories and matrices must reference its `id`; they are views of the same work, not competing ledgers. Before any active test, record the remaining request/concurrency budget and the action's expected signal, request cost, operational risk, priority, and stop condition.
-
-For every candidate, create a row in the finding ledger with:
-
-`id | asset | observation | hypothesis | expected_signal | request_cost | risk | priority | control | test | prerequisite | status | evidence | next_action`
-
-Prefer differential tests: same request with one controlled change, two identities, two object IDs, two methods, two content types, or two encodings. Establish a baseline first. Use the least privileged test account and synthetic objects. Avoid brute force; rate-limit observations must remain low-volume and explicitly authorized. Re-rank after each decision-changing result; do not consume budget on duplicate branches.
-
-Use tools as evidence producers, not verdicts:
-
-- discovery: `subfinder`, `dnsx`, `httpx`, `asnmap`;
-- ports/services: `naabu`, narrow `nmap`;
-- crawling/history: `katana`, `gau`, `waybackurls`, `hakrawler`;
-- content/parameter discovery: `ffuf`, `feroxbuster`, `arjun`;
-- detection: `nuclei`, `dalfox`, `gitleaks`, `trufflehog`;
-- request analysis: `curl`, `httpie`, `jq`, `ripgrep`, `unfurl`, `anew`;
-- specialized validation: `jwt-tool`, `sqlmap`, `testssl.sh` only after a justified hypothesis and within scope.
-
-Never label a finding High/Critical solely because a template or tool did so. Read the raw evidence and use `references/validation.md`.
-
-## Required finding lifecycle
-
-Use exactly one of these states:
+Scanner/tool output is never a finding by itself. Use:
 
 `OBSERVATION → HYPOTHESIS → CANDIDATE → REPRODUCED → CONFIRMED`
 
-or `REJECTED` / `NEEDS-EVIDENCE` when the evidence does not support the claim. A `CONFIRMED` finding must include a control comparison, reproducible steps, prerequisites, a security boundary crossed, and a bounded impact statement. If impact is inferred rather than demonstrated, label it as inference and lower confidence.
+Alternative terminal states: `REJECTED` or `NEEDS-EVIDENCE`.
 
-## Reporting
+A confirmed finding requires reproducible evidence, an appropriate control comparison, understood prerequisites, an identified security boundary, and bounded impact. Use `references/validation.md` for the complete rules.
 
-Use `templates/finding.md` for each finding and `templates/report.md` for the final report. Include title, severity, confidence, affected asset/endpoint, summary, technical details, prerequisites, steps, expected/actual behavior, redacted request/response evidence, violated boundary, impact/attack scenario, remediation, CWE, and CVSS rationale. Include rejected hypotheses and coverage gaps in an appendix; do not hide uncertainty.
+## Engagement bootstrap
 
-## Reference map
+Run as applicable:
 
-- Recon and mapping: `references/recon.md`, `references/web-mapping.md`.
-- Identity and access: `references/authentication.md`, `references/authorization.md`.
-- Logic and concurrency: `references/business-logic.md`, `references/race-conditions.md`.
-- Input and protocol behavior: `references/xss.md`, `references/sqli.md`, `references/injection.md`, `references/ssrf.md`, `references/file-upload.md`, `references/request-smuggling.md`.
-- Specialized surfaces: `references/api.md`, `references/graphql.md`, `references/websocket.md`, `references/javascript.md`, `references/cors.md`, `references/cache.md`, `references/cloud.md`, `references/secrets.md`.
-- Differential testing and evidence: `references/bypass-techniques.md`, `references/validation.md`.
-- Repeatable procedures: `workflows/quick-recon.md`, `full-hunt.md`, `api-hunt.md`, `auth-hunt.md`, `business-logic-hunt.md`, `deep-validation.md`.
+```bash
+scripts/init-engagement.sh <engagement-dir> <target>
+scripts/bootstrap.sh
+scripts/check-tools.sh
+```
 
-## Completion criteria
+Missing tooling is a routing constraint, never a reason to invent evidence. Preserve raw requests/responses, timestamps, commands, tool versions, scope decisions, and negative controls in the engagement directory; redact sensitive material before sharing.
 
-An engagement is complete only when scope was recorded, selected surfaces were mapped, hypotheses were either validated or rejected, raw evidence was preserved and redacted, confirmed findings use the required template, and limitations/untested areas are explicit.
+## Output
+
+Use `templates/finding.md` for findings and `templates/report.md` for final reporting. Report uncertainty, rejected hypotheses, and meaningful coverage gaps explicitly.
+
+## Completion
+
+Finish when the authorized surfaces selected for the engagement have been modeled sufficiently to answer the active hypotheses, candidates have been confirmed/rejected/marked needs-evidence, evidence is preserved, findings are reproducible, and limitations are explicit.
